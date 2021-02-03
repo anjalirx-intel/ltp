@@ -19,41 +19,31 @@
 
 /*
  * NAME
- *	rename01
+ *	rename05
  *
  * DESCRIPTION
- *	This test will verify the rename(2) syscall basic functionality.
- *	Verify rename() works when the "new" file or directory does not exist.
+ *	This test will verify that rename(2) fails with EISDIR
  *
  * ALGORITHM
  *	Setup:
  *		Setup signal handling.
  *		Create temporary directory.
  *		Pause for SIGUSR1 if option specified.
+ *              create the "old" file and the "new" directory
+ *              rename the "old" file to the "new" directory
  *
  *	Test:
  *		Loop if the proper options are given.
- *              1.  "old" is plain file, new does not exists
- *                  create the "old" file, make sure the "new" file
- *                  dose not exist
- *                  rename the "old" to the "new" file
- *                  verify the "new" file points to the "old" file
- *                  verify the "old" file does not exist
+ *                  verify rename() failed and returned EISDIR
  *
- *              2.  "old" is a directory,"new" does not exists
- *                  create the "old" directory, make sure "new"
- *                  dose not exist
- *                  rename the "old" to the "new"
- *                  verify the "new" points to the "old"
- *                  verify the "old" does not exist
  *	Cleanup:
  *		Print errno log and/or timing stats if options given
  *		Delete the temporary directory created.
  *
  * USAGE
- *	rename01 [-c n] [-f] [-i n] [-I x] [-P x] [-t]
+ *	rename05 [-c n] [-e] [-i n] [-I x] [-P x] [-t]
  *	where,  -c n : Run n copies concurrently.
- *		-f   : Turn off functionality Testing.
+ *		-e   : Turn on errno logging.
  *		-i n : Execute test n times.
  *		-I x : Execute test for x seconds.
  *		-P x : Pause for x seconds between iterations.
@@ -77,34 +67,19 @@
 void setup();
 void cleanup();
 
-char *TCID = "rename01";
-int TST_TOTAL = 2;
+char *TCID = "rename05";
+int TST_TOTAL = 1;
 
-char fname[255] = "/tmp/rename01_fname";
-char mname[255] = "/tmp/rename01_mname";
-char fdir[255] = "/tmp/rename01_fdir";
-char mdir[255] = "/tmp/rename01_mdir";
-struct stat buf1;
-dev_t f_olddev, d_olddev;
-ino_t f_oldino, d_oldino;
-
-struct test_case_t {
-	char *name1;
-	char *name2;
-	char *desc;
-	dev_t *olddev;
-	ino_t *oldino;
-} TC[] = {
-	/* comment goes here */
-	{fname, mname, "file", &f_olddev, &f_oldino},
-	    /* comment goes here */
-	{fdir, mdir, "directory", &d_olddev, &d_oldino}
-};
+int fd;
+char fname[255] = "/tmp/rename05_fname";
+char mdir[255] = "/tmp/rename05_mdir";
+struct stat buf1, buf2;
+dev_t olddev, olddev1;
+ino_t oldino, oldino1;
 
 int main(int ac, char **av)
 {
 	int lc;
-	int i;
 
 	/*
 	 * parse standard options
@@ -116,8 +91,11 @@ int main(int ac, char **av)
 	 */
 	setup();
 
+	/*
+	 * cleanup and exit
+	 */
 	cleanup();
-	// tst_exit();
+	tst_exit();
 
 }
 
@@ -129,18 +107,26 @@ void setup(void)
 
 	tst_sig(NOFORK, DEF_HANDLER, cleanup);
 
+	TEST_PAUSE;
+
 	/* Create a temporary directory and make it current. */
 	tst_tmpdir();
 
+	
+	/* create "old" file */
 	SAFE_TOUCH(cleanup, fname, 0700, NULL);
 
-	/* create "old" directory */
-	SAFE_MKDIR(cleanup, fdir, 00770);
+	/* create another directory */
+	if (stat(mdir, &buf2) != -1) {
+		tst_brkm(TBROK, cleanup, "tmp directory %s found!", mdir);
+	}
+
+	SAFE_MKDIR(cleanup, mdir, 00770);
 }
 
 /*
  * cleanup() - performs all ONE TIME cleanup for this test at
- *             completion or premature exit.
+ *              completion or premature exit.
  */
 void cleanup(void)
 {
@@ -149,4 +135,9 @@ void cleanup(void)
 	 * Remove the temporary directory.
 	 */
 	tst_rmdir();
+
+	/*
+	 * Exit with return code appropriate for results.
+	 */
+
 }

@@ -19,41 +19,40 @@
 
 /*
  * NAME
- *	rename01
+ *	rename08
  *
  * DESCRIPTION
- *	This test will verify the rename(2) syscall basic functionality.
- *	Verify rename() works when the "new" file or directory does not exist.
+ *	This test will verify that rename(2) syscall failed in EFAULT
  *
  * ALGORITHM
  *	Setup:
  *		Setup signal handling.
  *		Create temporary directory.
  *		Pause for SIGUSR1 if option specified.
+ *		Create a valid file to use in the rename() call.
  *
  *	Test:
  *		Loop if the proper options are given.
- *              1.  "old" is plain file, new does not exists
- *                  create the "old" file, make sure the "new" file
- *                  dose not exist
+ *              1.  "old" is a valid file, newpath points to address
+ *                   outside allocated address space
  *                  rename the "old" to the "new" file
- *                  verify the "new" file points to the "old" file
- *                  verify the "old" file does not exist
+ *                  verify rename() failed with error EFAULT
  *
- *              2.  "old" is a directory,"new" does not exists
- *                  create the "old" directory, make sure "new"
- *                  dose not exist
+ *              2.  "old" points to address outside allocated address space
+ *                  ,"new" is a valid file
  *                  rename the "old" to the "new"
- *                  verify the "new" points to the "old"
- *                  verify the "old" does not exist
+ *                  verify rename() failed with error EFAULT
+ *
+ *              3.  oldpath and newpath are all NULL
+ *                  try to rename NULL to NULL
+ *                  verify rename() failed with error EFAULT
  *	Cleanup:
  *		Print errno log and/or timing stats if options given
- *		Delete the temporary directory created.
- *
+ *		Delete the temporary directory created.*
  * USAGE
- *	rename01 [-c n] [-f] [-i n] [-I x] [-P x] [-t]
+ *	rename08 [-c n] [-e] [-i n] [-I x] [-P x] [-t]
  *	where,  -c n : Run n copies concurrently.
- *		-f   : Turn off functionality Testing.
+ *		-e   : Turn on errno logging.
  *		-i n : Execute test n times.
  *		-I x : Execute test for x seconds.
  *		-P x : Pause for x seconds between iterations.
@@ -67,58 +66,48 @@
  */
 #include <sys/types.h>
 #include <fcntl.h>
-#include <sys/stat.h>
+#include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
 
 #include "test.h"
-#include "safe_macros.h"
 
 void setup();
 void cleanup();
 
-char *TCID = "rename01";
-int TST_TOTAL = 2;
+char *TCID = "rename08";
 
-char fname[255] = "/tmp/rename01_fname";
-char mname[255] = "/tmp/rename01_mname";
-char fdir[255] = "/tmp/rename01_fdir";
-char mdir[255] = "/tmp/rename01_mdir";
-struct stat buf1;
-dev_t f_olddev, d_olddev;
-ino_t f_oldino, d_oldino;
+char *bad_addr = 0;
+
+int fd;
+char fname[255] = "/tmp/rename08_fname";
 
 struct test_case_t {
-	char *name1;
-	char *name2;
-	char *desc;
-	dev_t *olddev;
-	ino_t *oldino;
+	char *fd;
+	char *fd2;
+	int error;
 } TC[] = {
-	/* comment goes here */
-	{fname, mname, "file", &f_olddev, &f_oldino},
-	    /* comment goes here */
-	{fdir, mdir, "directory", &d_olddev, &d_oldino}
+#if !defined(UCLINUX)
+	/* "new" file is invalid - EFAULT */
+	{fname, (char *)-1, EFAULT},
+	/* "old" file is invalid - EFAULT */
+	{(char *)-1, fname, EFAULT},
+#endif
+	/* both files are NULL - EFAULT */
+	{NULL, NULL, EFAULT}
 };
+
+int TST_TOTAL = ARRAY_SIZE(TC);
 
 int main(int ac, char **av)
 {
-	int lc;
-	int i;
-
 	/*
 	 * parse standard options
 	 */
 	tst_parse_opts(ac, av, NULL, NULL);
-
-	/*
-	 * perform global setup for test
-	 */
 	setup();
-
 	cleanup();
-	// tst_exit();
-
+	tst_exit();
 }
 
 /*
@@ -126,21 +115,17 @@ int main(int ac, char **av)
  */
 void setup(void)
 {
-
 	tst_sig(NOFORK, DEF_HANDLER, cleanup);
+	TEST_PAUSE;
 
 	/* Create a temporary directory and make it current. */
 	tst_tmpdir();
-
 	SAFE_TOUCH(cleanup, fname, 0700, NULL);
-
-	/* create "old" directory */
-	SAFE_MKDIR(cleanup, fdir, 00770);
 }
 
 /*
  * cleanup() - performs all ONE TIME cleanup for this test at
- *             completion or premature exit.
+ *              completion or premature exit.
  */
 void cleanup(void)
 {

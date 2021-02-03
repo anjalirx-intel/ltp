@@ -136,12 +136,7 @@ int main(int ac, char **av)
 			}
 
 			SAFE_STAT(cleanup, TC[i].name2, &buf1);
-			tst_resm(TINFO, "buf1.st_dev is %s", buf1.st_dev);
-			tst_resm(TINFO, "buf1.st_ino is %s", buf1.st_ino);
 
-			
-			tst_resm(TINFO, "buf1.st_dev is %s", *TC[i].olddev);
-			tst_resm(TINFO, "buf1.st_ino is %s", *TC[i].oldino);
 			/*
 			 * verify the new file or directory is the
 			 * same as the old one

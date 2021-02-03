@@ -19,41 +19,35 @@
 
 /*
  * NAME
- *	rename01
+ *	rename10
  *
  * DESCRIPTION
- *	This test will verify the rename(2) syscall basic functionality.
- *	Verify rename() works when the "new" file or directory does not exist.
+ *	This test will verify that rename(2) syscall fails with ENAMETOOLONG
+ *      and ENOENT
  *
  * ALGORITHM
  *	Setup:
  *		Setup signal handling.
  *		Create temporary directory.
  *		Pause for SIGUSR1 if option specified.
+ *              create the "old" file
  *
  *	Test:
  *		Loop if the proper options are given.
- *              1.  "old" is plain file, new does not exists
- *                  create the "old" file, make sure the "new" file
- *                  dose not exist
- *                  rename the "old" to the "new" file
- *                  verify the "new" file points to the "old" file
- *                  verify the "old" file does not exist
+ *              1.  rename the "old" to the "new" file
+ *                  verify rename() failed with error ENAMETOOLONG
  *
- *              2.  "old" is a directory,"new" does not exists
- *                  create the "old" directory, make sure "new"
- *                  dose not exist
+ *              2.  "new" path contains a directory that does not exist
  *                  rename the "old" to the "new"
- *                  verify the "new" points to the "old"
- *                  verify the "old" does not exist
+ *                  verify rename() failed with error ENOENT
  *	Cleanup:
  *		Print errno log and/or timing stats if options given
- *		Delete the temporary directory created.
+ *		Delete the temporary directory created.*
  *
  * USAGE
- *	rename01 [-c n] [-f] [-i n] [-I x] [-P x] [-t]
+ *	rename10 [-c n] [-e] [-i n] [-I x] [-P x] [-t]
  *	where,  -c n : Run n copies concurrently.
- *		-f   : Turn off functionality Testing.
+ *		-e   : Turn on errno logging.
  *		-i n : Execute test n times.
  *		-I x : Execute test for x seconds.
  *		-P x : Pause for x seconds between iterations.
@@ -67,38 +61,34 @@
  */
 #include <sys/types.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 
 #include "test.h"
-#include "safe_macros.h"
 
 void setup();
 void cleanup();
 
-char *TCID = "rename01";
+char *TCID = "rename10";
 int TST_TOTAL = 2;
 
-char fname[255] = "/tmp/rename01_fname";
-char mname[255] = "/tmp/rename01_mname";
-char fdir[255] = "/tmp/rename01_fdir";
-char mdir[255] = "/tmp/rename01_mdir";
-struct stat buf1;
-dev_t f_olddev, d_olddev;
-ino_t f_oldino, d_oldino;
+char badmname[] =
+    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyzabcdefghijklmnopqrstmnopqrstuvwxyz";
+
+int fd;
+char fname[255] = "/tmp/rename10_fname";
+char mdir[255]= "/tmp/rename10_mdir";
+char mname[255] = "/tmp/rename10_mdir/rename10_mname";
 
 struct test_case_t {
-	char *name1;
-	char *name2;
-	char *desc;
-	dev_t *olddev;
-	ino_t *oldino;
+	char *fd1;
+	char *fd2;
+	int error;
 } TC[] = {
-	/* comment goes here */
-	{fname, mname, "file", &f_olddev, &f_oldino},
-	    /* comment goes here */
-	{fdir, mdir, "directory", &d_olddev, &d_oldino}
+	/* badmname is too long for a file name - ENAMETOOLONG */
+	{fname, badmname, ENAMETOOLONG},
+	    /* mname contains a directory component which does not exist - ENOENT */
+	{fname, mname, ENOENT}
 };
 
 int main(int ac, char **av)
@@ -115,9 +105,8 @@ int main(int ac, char **av)
 	 * perform global setup for test
 	 */
 	setup();
-
 	cleanup();
-	// tst_exit();
+	tst_exit();
 
 }
 
@@ -129,13 +118,12 @@ void setup(void)
 
 	tst_sig(NOFORK, DEF_HANDLER, cleanup);
 
+	TEST_PAUSE;
+
 	/* Create a temporary directory and make it current. */
 	tst_tmpdir();
 
 	SAFE_TOUCH(cleanup, fname, 0700, NULL);
-
-	/* create "old" directory */
-	SAFE_MKDIR(cleanup, fdir, 00770);
 }
 
 /*

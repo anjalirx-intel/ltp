@@ -94,20 +94,7 @@ int main(int ac, char **av)
 }
 
 static void setup(void)
-{
-	// if ((tst_kvercmp(2, 6, 39)) < 0) {
-	// 	tst_brkm(TCONF, NULL, "This test can only run on kernels "
-	// 		"that are 2.6.39 or higher");
-	// }
-
-	// tst_sig(NOFORK, DEF_HANDLER, cleanup);
-
-	// tst_tmpdir();
-
-	// SAFE_TOUCH(cleanup, TESTFILE, FILE_MODE, NULL);
-
-	// TEST_PAUSE;
-}
+{}
 
 static void verify_read(void)
 {

@@ -19,11 +19,11 @@
 
 /*
  * NAME
- *	rename01
+ *	rename13
  *
  * DESCRIPTION
- *	This test will verify the rename(2) syscall basic functionality.
- *	Verify rename() works when the "new" file or directory does not exist.
+ *	Verify rename() return successfully and performs no other action
+ *      when "old" file and "new" file link to the same file.
  *
  * ALGORITHM
  *	Setup:
@@ -33,25 +33,18 @@
  *
  *	Test:
  *		Loop if the proper options are given.
- *              1.  "old" is plain file, new does not exists
- *                  create the "old" file, make sure the "new" file
- *                  dose not exist
+ *                  create the "old" file
+ *                  link the "new" file to the "old" file
  *                  rename the "old" to the "new" file
- *                  verify the "new" file points to the "old" file
- *                  verify the "old" file does not exist
- *
- *              2.  "old" is a directory,"new" does not exists
- *                  create the "old" directory, make sure "new"
- *                  dose not exist
- *                  rename the "old" to the "new"
- *                  verify the "new" points to the "old"
- *                  verify the "old" does not exist
+ *                  verify the "new" file points to the original file
+ *                  verify the "old" file exists and points to
+ *                         the original file
  *	Cleanup:
  *		Print errno log and/or timing stats if options given
  *		Delete the temporary directory created.
  *
  * USAGE
- *	rename01 [-c n] [-f] [-i n] [-I x] [-P x] [-t]
+ *	rename13 [-c n] [-f] [-i n] [-I x] [-P x] [-t]
  *	where,  -c n : Run n copies concurrently.
  *		-f   : Turn off functionality Testing.
  *		-i n : Execute test n times.
@@ -77,34 +70,19 @@
 void setup();
 void cleanup();
 
-char *TCID = "rename01";
-int TST_TOTAL = 2;
+char *TCID = "rename13";
+int TST_TOTAL = 1;
 
-char fname[255] = "/tmp/rename01_fname";
-char mname[255] = "/tmp/rename01_mname";
-char fdir[255] = "/tmp/rename01_fdir";
-char mdir[255] = "/tmp/rename01_mdir";
-struct stat buf1;
-dev_t f_olddev, d_olddev;
-ino_t f_oldino, d_oldino;
-
-struct test_case_t {
-	char *name1;
-	char *name2;
-	char *desc;
-	dev_t *olddev;
-	ino_t *oldino;
-} TC[] = {
-	/* comment goes here */
-	{fname, mname, "file", &f_olddev, &f_oldino},
-	    /* comment goes here */
-	{fdir, mdir, "directory", &d_olddev, &d_oldino}
-};
+int fd;
+char fname[255] = "/tmp/rename13_fname";
+char mname[255] = "/tmp/rename13_mname";
+struct stat buf1, buf2;
+dev_t olddev;
+ino_t oldino;
 
 int main(int ac, char **av)
 {
 	int lc;
-	int i;
 
 	/*
 	 * parse standard options
@@ -115,10 +93,8 @@ int main(int ac, char **av)
 	 * perform global setup for test
 	 */
 	setup();
-
 	cleanup();
 	// tst_exit();
-
 }
 
 /*
@@ -129,13 +105,14 @@ void setup(void)
 
 	tst_sig(NOFORK, DEF_HANDLER, cleanup);
 
+	TEST_PAUSE;
+
 	/* Create a temporary directory and make it current. */
 	tst_tmpdir();
-
 	SAFE_TOUCH(cleanup, fname, 0700, NULL);
 
-	/* create "old" directory */
-	SAFE_MKDIR(cleanup, fdir, 00770);
+	/* link the "new" file to the "old" file */
+	SAFE_LINK(cleanup, fname, mname);
 }
 
 /*
@@ -149,4 +126,5 @@ void cleanup(void)
 	 * Remove the temporary directory.
 	 */
 	tst_rmdir();
+
 }
