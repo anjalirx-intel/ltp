@@ -106,6 +106,7 @@ int main(int ac, char **av)
 	 */
 	tst_parse_opts(ac, av, NULL, NULL);
 	setup();
+	tst_resm(TPASS, "No test function defined here");
 	cleanup();
 	tst_exit();
 }

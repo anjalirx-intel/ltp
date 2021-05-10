@@ -161,11 +161,4 @@ void setup(void)
  *             completion or premature exit.
  */
 void cleanup(void)
-{
-
-	/*
-	 * Remove the temporary directory.
-	 */
-	tst_rmdir();
-
-}
+{}

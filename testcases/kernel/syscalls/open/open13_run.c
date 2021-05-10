@@ -151,5 +151,4 @@ static void cleanup(void)
 	if (fd > 0 && close(fd))
 		tst_resm(TWARN | TERRNO, "failed to close file");
 
-	tst_rmdir();
 }

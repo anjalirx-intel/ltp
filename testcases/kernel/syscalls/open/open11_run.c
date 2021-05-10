@@ -191,27 +191,27 @@ static struct test_case {
 		.err = EISDIR,
 	},
 	/* * Test open(2) device special */
-	// {	/* open device special file O_RDONLY */
-	// 	.desc = "Open device special file O_RDONLY",
-	// 	.path = T_DEV,
-	// 	.flags = O_RDONLY,
-	// 	.mode = 0644,
-	// 	.err = 0,
-	// },
-	// {	/* open device special file O_WRONLY */
-	// 	.desc = "Open device special file O_WRONLY",
-	// 	.path = T_DEV,
-	// 	.flags = O_WRONLY,
-	// 	.mode = 0644,
-	// 	.err = 0,
-	// },
-	// {	/* open device special file O_RDWR */
-	// 	.desc = "Open device special file O_RDWR",
-	// 	.path = T_DEV,
-	// 	.flags = O_RDWR,
-	// 	.mode = 0644,
-	// 	.err = 0,
-	// },
+	{	/* open device special file O_RDONLY */
+		.desc = "Open device special file O_RDONLY",
+		.path = T_DEV,
+		.flags = O_RDONLY,
+		.mode = 0644,
+		.err = 0,
+	},
+	{	/* open device special file O_WRONLY */
+		.desc = "Open device special file O_WRONLY",
+		.path = T_DEV,
+		.flags = O_WRONLY,
+		.mode = 0644,
+		.err = 0,
+	},
+	{	/* open device special file O_RDWR */
+		.desc = "Open device special file O_RDWR",
+		.path = T_DEV,
+		.flags = O_RDWR,
+		.mode = 0644,
+		.err = 0,
+	},
 	/* * Test open(2) non-existing file */
 	{	/* open non-existing regular file in existing dir */
 		.desc = "Open non-existing regular file in existing dir",

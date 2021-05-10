@@ -141,13 +141,15 @@ int main(int ac, char **av)
 			 * verify the new file or directory is the
 			 * same as the old one
 			 */
+			
 			if (buf1.st_dev != *TC[i].olddev ||
 			    buf1.st_ino != *TC[i].oldino) {
 				tst_resm(TFAIL, "rename() failed: the "
 					 "new %s points to a different "
 					 "inode/location", TC[i].desc);
 				continue;
-			}
+			}	
+
 			/*
 			 * verify that the old file or directory
 			 * does not exist
@@ -193,10 +195,4 @@ void setup(void)
  *             completion or premature exit.
  */
 void cleanup(void)
-{
-
-	/*
-	 * Remove the temporary directory.
-	 */
-	tst_rmdir();
-}
+{}

@@ -42,7 +42,6 @@ static void fifo_create(char *name)
 
 static void verify_unlink(unsigned int n)
 {
-	char fname[255];
 	struct test_case_t *tc = &tcases[n];
 
 	TEST(unlink(tc->desc));
@@ -51,7 +50,7 @@ static void verify_unlink(unsigned int n)
 		return;
 	}
 
-	if (!access(fname, F_OK)) {
+	if (!access(tc->desc, F_OK)) {
 		tst_res(TFAIL, "unlink(%s) succeeded, but %s still existed",
 			tc->desc, tc->desc);
 		return;

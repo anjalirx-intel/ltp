@@ -48,7 +48,7 @@
 
 #include "tst_test.h"
 
-// #define MNTPOINT "/tmp/mntpoint"
+#define MNTPOINT "/tmp/mntpoint"
 #define T_REG "/tmp/t_reg"			/* regular file with content */
 #define T_REG_EMPTY "/tmp/t_reg_empty"	/* empty regular file */
 #define T_LINK_REG "/tmp/t_link_reg"		/* hard link to T_REG */
@@ -56,7 +56,7 @@
 #define T_SYMLINK_REG "/tmp/t_symlink_reg"	/* symlink to T_REG */
 #define T_DIR "/tmp/t_dir"			/* test dir */
 #define T_SYMLINK_DIR "/tmp/t_symlink_dir"	/* symlink to T_DIR */
-// #define T_DEV MNTPOINT"/t_dev"		/* test device special file */
+#define T_DEV MNTPOINT"/t_dev"		/* test device special file */
 
 #define T_MSG "this is a test string"
 
@@ -100,14 +100,14 @@ static void setup(void)
 	SAFE_SYMLINK(T_REG, T_SYMLINK_REG);
 	SAFE_MKDIR(T_DIR, 0755);
 	SAFE_SYMLINK(T_DIR, T_SYMLINK_DIR);
-	// SAFE_MKNOD(T_DEV, S_IFCHR, makedev(1, 5));
+	SAFE_MKNOD(T_DEV, S_IFCHR, makedev(1, 5));
 }
 
 static struct tst_test test = {
 	.tcnt = ARRAY_SIZE(tc),
 	.setup = setup,
 	.test = verify_open,
-	// .needs_devfs = 1,
-	// .mntpoint = MNTPOINT,
+	.needs_devfs = 1,
+	.mntpoint = MNTPOINT,
 	.needs_root = 1,
 };

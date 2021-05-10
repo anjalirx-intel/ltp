@@ -123,6 +123,4 @@ static void cleanup(void)
     
 	if (dir_fd > 0)
 		close(dir_fd);
-
-	tst_rmdir();
 }
