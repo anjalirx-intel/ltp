@@ -74,7 +74,7 @@ void tst_checkpoint_init(const char *file, const int lineno,
 	SAFE_FTRUNCATE(cleanup_fn, fd, page_size);
 
 	tst_futexes = SAFE_MMAP(cleanup_fn, NULL, page_size,
-	                    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	                    PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 
 	tst_max_futexes = page_size / sizeof(uint32_t);
 
